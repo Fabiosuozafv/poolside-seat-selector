@@ -286,13 +286,6 @@ const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMa
         PISCINA
       </text>
 
-      {/* Sector Labels */}
-      <text x="35" y="250" textAnchor="middle" fontSize="11" fontWeight="600" fill="#fff" transform="rotate(-90, 35, 250)">
-        SETOR A
-      </text>
-      <text x="365" y="250" textAnchor="middle" fontSize="11" fontWeight="600" fill="#fff" transform="rotate(90, 365, 250)">
-        SETOR B
-      </text>
 
       {/* Deck border */}
       <polygon
