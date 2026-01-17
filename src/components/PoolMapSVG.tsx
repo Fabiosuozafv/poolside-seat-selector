@@ -14,7 +14,7 @@ interface PoolMapSVGProps {
   onTableClick: (table: Table) => void;
 }
 
-// Generate tables that fit in the green areas
+// Generate tables that fit in the green areas + fixed deck tables
 export function generateTables(): Table[] {
   const tables: Table[] = [];
   let id = 1;
@@ -23,19 +23,41 @@ export function generateTables(): Table[] {
   const gap = 6; // Gap between tables
   const step = tableSize + gap;
   
-  // Left side (Sector A) - from x=10 to x=58, y=40 to y=460
+  // Left side (Sector A) - green area
   for (let y = 45; y <= 450; y += step) {
     for (let x = 12; x <= 48; x += step) {
       tables.push({ id: id++, x, y, sector: "A" });
     }
   }
   
-  // Right side (Sector B) - from x=340 to x=388, y=40 to y=460
+  // Right side (Sector B) - green area
   for (let y = 45; y <= 450; y += step) {
     for (let x = 342; x <= 378; x += step) {
       tables.push({ id: id++, x, y, sector: "B" });
     }
   }
+  
+  // Fixed deck tables (15 tables around the pools)
+  // Left side of deck
+  tables.push({ id: id++, x: 78, y: 50, sector: "A" });
+  tables.push({ id: id++, x: 78, y: 100, sector: "A" });
+  tables.push({ id: id++, x: 78, y: 200, sector: "A" });
+  tables.push({ id: id++, x: 78, y: 260, sector: "A" });
+  tables.push({ id: id++, x: 78, y: 320, sector: "A" });
+  tables.push({ id: id++, x: 78, y: 400, sector: "A" });
+  tables.push({ id: id++, x: 78, y: 460, sector: "A" });
+  
+  // Right side of deck
+  tables.push({ id: id++, x: 295, y: 50, sector: "B" });
+  tables.push({ id: id++, x: 295, y: 100, sector: "B" });
+  tables.push({ id: id++, x: 295, y: 200, sector: "B" });
+  tables.push({ id: id++, x: 295, y: 260, sector: "B" });
+  tables.push({ id: id++, x: 295, y: 320, sector: "B" });
+  tables.push({ id: id++, x: 295, y: 400, sector: "B" });
+  tables.push({ id: id++, x: 295, y: 460, sector: "B" });
+  
+  // Bottom of deck
+  tables.push({ id: id++, x: 185, y: 420, sector: "A" });
   
   return tables;
 }
