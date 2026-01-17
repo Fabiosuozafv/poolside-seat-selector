@@ -2,10 +2,8 @@ import { CheckCircle2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface SavedLocation {
-  x: number;
-  y: number;
-  sector: string | null;
-  tableNumber?: number | null;
+  tableId: number;
+  sector: string;
   timestamp: number;
 }
 
@@ -40,27 +38,17 @@ const SuccessScreen = ({ savedLocation, onReset }: SuccessScreenProps) => {
         {/* Saved data card */}
         <div className="glass-card rounded-xl p-4 mb-8 text-left">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            {savedLocation.tableNumber && (
-              <div className="col-span-2">
-                <span className="text-muted-foreground">Mesa</span>
-                <p className="font-mono font-bold text-2xl text-primary">
-                  #{savedLocation.tableNumber}
-                </p>
-              </div>
-            )}
-            <div>
-              <span className="text-muted-foreground">Coordenadas</span>
-              <p className="font-mono font-medium text-foreground">
-                X: {Math.round(savedLocation.x)}, Y: {Math.round(savedLocation.y)}
+            <div className="col-span-2">
+              <span className="text-muted-foreground">Mesa</span>
+              <p className="font-mono font-bold text-2xl text-primary">
+                #{savedLocation.tableId}
               </p>
             </div>
-            {savedLocation.sector && (
-              <div>
-                <span className="text-muted-foreground">Setor</span>
-                <p className="font-medium text-primary">{savedLocation.sector}</p>
-              </div>
-            )}
-            <div className="col-span-2">
+            <div>
+              <span className="text-muted-foreground">Setor</span>
+              <p className="font-medium text-primary">{savedLocation.sector}</p>
+            </div>
+            <div>
               <span className="text-muted-foreground">Data/Hora</span>
               <p className="font-medium text-foreground">{formattedDate}</p>
             </div>

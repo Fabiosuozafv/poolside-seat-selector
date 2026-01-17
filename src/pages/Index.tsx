@@ -2,30 +2,26 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { ZoomIn, ZoomOut, RotateCcw, Move } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PoolMapSVG from "@/components/PoolMapSVG";
-import SelectionPin from "@/components/SelectionPin";
 import StatusCard from "@/components/StatusCard";
 import SuccessScreen from "@/components/SuccessScreen";
 import { usePoolMapSelection } from "@/hooks/usePoolMapSelection";
 
 const Index = () => {
   const {
-    containerRef,
-    selection,
+    tables,
+    selectedTable,
     savedLocation,
     isConfirmed,
-    handleMapClick,
+    handleTableClick,
     confirmSelection,
     clearSelection,
     resetAll,
-    getPinScreenPosition,
   } = usePoolMapSelection();
 
   // Show success screen after confirmation
   if (isConfirmed && savedLocation) {
     return <SuccessScreen savedLocation={savedLocation} onReset={resetAll} />;
   }
-
-  const pinPosition = getPinScreenPosition();
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -36,7 +32,7 @@ const Index = () => {
             Selecione sua mesa na piscina
           </h1>
           <p className="text-muted-foreground text-sm text-center mt-1">
-            Toque em uma mesa ou na área verde para escolher sua posição
+            Toque em uma mesa para escolher sua posição
           </p>
         </div>
       </header>
@@ -92,17 +88,13 @@ const Index = () => {
                 wrapperClass="!w-full !h-full"
                 contentClass="!w-full !h-full flex items-center justify-center p-4"
               >
-                <div 
-                  className="relative w-full max-w-md" 
-                  ref={containerRef} 
-                  onClick={handleMapClick}
-                >
-                  <PoolMapSVG className="w-full h-auto drop-shadow-lg" />
-                  
-                  {/* Selection Pin */}
-                  {selection && pinPosition && (
-                    <SelectionPin x={pinPosition.x} y={pinPosition.y} />
-                  )}
+                <div className="relative w-full max-w-md">
+                  <PoolMapSVG
+                    className="w-full h-auto drop-shadow-lg"
+                    tables={tables}
+                    selectedTableId={selectedTable?.id ?? null}
+                    onTableClick={handleTableClick}
+                  />
                 </div>
               </TransformComponent>
             </>
@@ -113,7 +105,12 @@ const Index = () => {
       {/* Status Card */}
       <div className="shrink-0">
         <StatusCard
-          selection={selection}
+          selection={selectedTable ? {
+            x: selectedTable.x,
+            y: selectedTable.y,
+            sector: `Setor ${selectedTable.sector}`,
+            tableNumber: selectedTable.id,
+          } : null}
           onConfirm={confirmSelection}
           onClear={clearSelection}
         />
