@@ -1,10 +1,11 @@
-import { MapPin, X, Check } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface SelectionData {
   x: number;
   y: number;
   sector: string | null;
+  tableNumber?: number | null;
 }
 
 interface StatusCardProps {
@@ -35,9 +36,17 @@ const StatusCard = ({ selection, onConfirm, onClear }: StatusCardProps) => {
         )}
       </div>
 
-      {/* Coordinates */}
+      {/* Selection details */}
       {hasSelection && (
-        <div className="flex gap-4 mb-4 text-sm">
+        <div className="flex gap-4 mb-4 text-sm flex-wrap">
+          {selection.tableNumber && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span className="font-medium">Mesa:</span>
+              <span className="font-mono text-foreground text-lg font-bold text-primary">
+                {selection.tableNumber}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-2 text-muted-foreground">
             <span className="font-medium">X:</span>
             <span className="font-mono text-foreground">{Math.round(selection.x)}</span>

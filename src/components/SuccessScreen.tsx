@@ -5,6 +5,7 @@ interface SavedLocation {
   x: number;
   y: number;
   sector: string | null;
+  tableNumber?: number | null;
   timestamp: number;
 }
 
@@ -39,6 +40,14 @@ const SuccessScreen = ({ savedLocation, onReset }: SuccessScreenProps) => {
         {/* Saved data card */}
         <div className="glass-card rounded-xl p-4 mb-8 text-left">
           <div className="grid grid-cols-2 gap-4 text-sm">
+            {savedLocation.tableNumber && (
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Mesa</span>
+                <p className="font-mono font-bold text-2xl text-primary">
+                  #{savedLocation.tableNumber}
+                </p>
+              </div>
+            )}
             <div>
               <span className="text-muted-foreground">Coordenadas</span>
               <p className="font-mono font-medium text-foreground">

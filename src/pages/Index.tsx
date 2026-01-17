@@ -1,7 +1,7 @@
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { ZoomIn, ZoomOut, RotateCcw, Move } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import PoolMapImage from "@/components/PoolMapImage";
+import PoolMapSVG from "@/components/PoolMapSVG";
 import SelectionPin from "@/components/SelectionPin";
 import StatusCard from "@/components/StatusCard";
 import SuccessScreen from "@/components/SuccessScreen";
@@ -36,7 +36,7 @@ const Index = () => {
             Selecione sua mesa na piscina
           </h1>
           <p className="text-muted-foreground text-sm text-center mt-1">
-            Toque na área verde para escolher sua posição
+            Toque em uma mesa ou na área verde para escolher sua posição
           </p>
         </div>
       </header>
@@ -93,11 +93,11 @@ const Index = () => {
                 contentClass="!w-full !h-full flex items-center justify-center p-4"
               >
                 <div 
-                  className="relative w-full max-w-lg" 
+                  className="relative w-full max-w-md" 
                   ref={containerRef} 
                   onClick={handleMapClick}
                 >
-                  <PoolMapImage />
+                  <PoolMapSVG className="w-full h-auto drop-shadow-lg" />
                   
                   {/* Selection Pin */}
                   {selection && pinPosition && (
