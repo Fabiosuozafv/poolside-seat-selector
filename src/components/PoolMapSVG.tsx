@@ -1,8 +1,48 @@
-interface PoolMapSVGProps {
-  className?: string;
+import { useMemo } from "react";
+
+interface Table {
+  id: number;
+  x: number;
+  y: number;
+  sector: "A" | "B";
 }
 
-const PoolMapSVG = ({ className }: PoolMapSVGProps) => {
+interface PoolMapSVGProps {
+  className?: string;
+  tables: Table[];
+  selectedTableId: number | null;
+  onTableClick: (table: Table) => void;
+}
+
+// Generate tables that fit in the green areas
+export function generateTables(): Table[] {
+  const tables: Table[] = [];
+  let id = 1;
+  
+  const tableSize = 22; // Size of each table square
+  const gap = 6; // Gap between tables
+  const step = tableSize + gap;
+  
+  // Left side (Sector A) - from x=10 to x=58, y=40 to y=460
+  for (let y = 45; y <= 450; y += step) {
+    for (let x = 12; x <= 48; x += step) {
+      tables.push({ id: id++, x, y, sector: "A" });
+    }
+  }
+  
+  // Right side (Sector B) - from x=340 to x=388, y=40 to y=460
+  for (let y = 45; y <= 450; y += step) {
+    for (let x = 342; x <= 378; x += step) {
+      tables.push({ id: id++, x, y, sector: "B" });
+    }
+  }
+  
+  return tables;
+}
+
+const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMapSVGProps) => {
+  const tableSize = 22;
+  
   return (
     <svg
       viewBox="0 0 400 500"
@@ -10,7 +50,6 @@ const PoolMapSVG = ({ className }: PoolMapSVGProps) => {
       style={{ width: "100%", height: "auto" }}
     >
       <defs>
-        {/* Gradients for visual depth */}
         <linearGradient id="poolGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#4FC3F7" />
           <stop offset="100%" stopColor="#29B6F6" />
@@ -26,10 +65,10 @@ const PoolMapSVG = ({ className }: PoolMapSVGProps) => {
           <stop offset="100%" stopColor="#7CB342" />
         </linearGradient>
 
-        {/* Umbrella pattern */}
-        <pattern id="umbrellaPattern" width="8" height="8" patternUnits="userSpaceOnUse">
-          <line x1="0" y1="0" x2="8" y2="8" stroke="#fff" strokeWidth="1" opacity="0.3" />
-        </pattern>
+        <linearGradient id="selectedGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#EF5350" />
+          <stop offset="100%" stopColor="#E53935" />
+        </linearGradient>
       </defs>
 
       {/* Background */}
@@ -37,20 +76,14 @@ const PoolMapSVG = ({ className }: PoolMapSVGProps) => {
 
       {/* Left Green Area - Sector A */}
       <path
-        className="green-zone"
-        data-sector="A"
         d="M 0 30 L 70 0 L 70 500 L 0 470 Z"
         fill="url(#grassGradient)"
-        style={{ cursor: "pointer" }}
       />
 
       {/* Right Green Area - Sector B */}
       <path
-        className="green-zone"
-        data-sector="B"
         d="M 330 0 L 400 30 L 400 470 L 330 500 Z"
         fill="url(#grassGradient)"
-        style={{ cursor: "pointer" }}
       />
 
       {/* Deck Area */}
@@ -70,7 +103,6 @@ const PoolMapSVG = ({ className }: PoolMapSVGProps) => {
         fill="url(#poolGradient)"
       />
       
-      {/* Pool water effect */}
       <rect
         x="125"
         y="45"
@@ -95,7 +127,6 @@ const PoolMapSVG = ({ className }: PoolMapSVGProps) => {
         fill="url(#poolGradient)"
       />
       
-      {/* Pool water effect */}
       <rect
         x="125"
         y="185"
@@ -112,142 +143,44 @@ const PoolMapSVG = ({ className }: PoolMapSVGProps) => {
       {/* Entrance/Structure at top */}
       <rect x="185" y="5" width="30" height="25" fill="#fff" stroke="#ddd" strokeWidth="1" rx="2" />
 
-      {/* Tables with Umbrellas - Left Side (9-15) */}
-      {/* Table 9 */}
-      <g className="table" data-table="9">
-        <circle cx="95" cy="60" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="95" cy="60" r="15" fill="#fff" opacity="0.6" />
-        <line x1="95" y1="45" x2="95" y2="75" stroke="#999" strokeWidth="1" />
-        <line x1="80" y1="60" x2="110" y2="60" stroke="#999" strokeWidth="1" />
-        <text x="95" y="64" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">9</text>
-      </g>
-
-      {/* Table 10 */}
-      <g className="table" data-table="10">
-        <circle cx="95" cy="110" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="95" cy="110" r="15" fill="#fff" opacity="0.6" />
-        <line x1="95" y1="95" x2="95" y2="125" stroke="#999" strokeWidth="1" />
-        <line x1="80" y1="110" x2="110" y2="110" stroke="#999" strokeWidth="1" />
-        <text x="95" y="114" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">10</text>
-      </g>
-
-      {/* Table 11 */}
-      <g className="table" data-table="11">
-        <circle cx="95" cy="165" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="95" cy="165" r="15" fill="#fff" opacity="0.6" />
-        <line x1="95" y1="150" x2="95" y2="180" stroke="#999" strokeWidth="1" />
-        <line x1="80" y1="165" x2="110" y2="165" stroke="#999" strokeWidth="1" />
-        <text x="95" y="169" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">11</text>
-      </g>
-
-      {/* Table 12 */}
-      <g className="table" data-table="12">
-        <circle cx="95" cy="220" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="95" cy="220" r="15" fill="#fff" opacity="0.6" />
-        <line x1="95" y1="205" x2="95" y2="235" stroke="#999" strokeWidth="1" />
-        <line x1="80" y1="220" x2="110" y2="220" stroke="#999" strokeWidth="1" />
-        <text x="95" y="224" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">12</text>
-      </g>
-
-      {/* Table 13 */}
-      <g className="table" data-table="13">
-        <circle cx="95" cy="280" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="95" cy="280" r="15" fill="#fff" opacity="0.6" />
-        <line x1="95" y1="265" x2="95" y2="295" stroke="#999" strokeWidth="1" />
-        <line x1="80" y1="280" x2="110" y2="280" stroke="#999" strokeWidth="1" />
-        <text x="95" y="284" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">13</text>
-      </g>
-
-      {/* Table 14 */}
-      <g className="table" data-table="14">
-        <circle cx="95" cy="345" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="95" cy="345" r="15" fill="#fff" opacity="0.6" />
-        <line x1="95" y1="330" x2="95" y2="360" stroke="#999" strokeWidth="1" />
-        <line x1="80" y1="345" x2="110" y2="345" stroke="#999" strokeWidth="1" />
-        <text x="95" y="349" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">14</text>
-      </g>
-
-      {/* Table 15 */}
-      <g className="table" data-table="15">
-        <circle cx="95" cy="410" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="95" cy="410" r="15" fill="#fff" opacity="0.6" />
-        <line x1="95" y1="395" x2="95" y2="425" stroke="#999" strokeWidth="1" />
-        <line x1="80" y1="410" x2="110" y2="410" stroke="#999" strokeWidth="1" />
-        <text x="95" y="414" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">15</text>
-      </g>
-
-      {/* Tables with Umbrellas - Right Side (1-8) */}
-      {/* Table 1 */}
-      <g className="table" data-table="1">
-        <circle cx="305" cy="60" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="305" cy="60" r="15" fill="#fff" opacity="0.6" />
-        <line x1="305" y1="45" x2="305" y2="75" stroke="#999" strokeWidth="1" />
-        <line x1="290" y1="60" x2="320" y2="60" stroke="#999" strokeWidth="1" />
-        <text x="305" y="64" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">1</text>
-      </g>
-
-      {/* Table 2 */}
-      <g className="table" data-table="2">
-        <circle cx="305" cy="110" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="305" cy="110" r="15" fill="#fff" opacity="0.6" />
-        <line x1="305" y1="95" x2="305" y2="125" stroke="#999" strokeWidth="1" />
-        <line x1="290" y1="110" x2="320" y2="110" stroke="#999" strokeWidth="1" />
-        <text x="305" y="114" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">2</text>
-      </g>
-
-      {/* Table 3 */}
-      <g className="table" data-table="3">
-        <circle cx="305" cy="165" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="305" cy="165" r="15" fill="#fff" opacity="0.6" />
-        <line x1="305" y1="150" x2="305" y2="180" stroke="#999" strokeWidth="1" />
-        <line x1="290" y1="165" x2="320" y2="165" stroke="#999" strokeWidth="1" />
-        <text x="305" y="169" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">3</text>
-      </g>
-
-      {/* Table 4 */}
-      <g className="table" data-table="4">
-        <circle cx="305" cy="220" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="305" cy="220" r="15" fill="#fff" opacity="0.6" />
-        <line x1="305" y1="205" x2="305" y2="235" stroke="#999" strokeWidth="1" />
-        <line x1="290" y1="220" x2="320" y2="220" stroke="#999" strokeWidth="1" />
-        <text x="305" y="224" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">4</text>
-      </g>
-
-      {/* Table 5 */}
-      <g className="table" data-table="5">
-        <circle cx="305" cy="280" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="305" cy="280" r="15" fill="#fff" opacity="0.6" />
-        <line x1="305" y1="265" x2="305" y2="295" stroke="#999" strokeWidth="1" />
-        <line x1="290" y1="280" x2="320" y2="280" stroke="#999" strokeWidth="1" />
-        <text x="305" y="284" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">5</text>
-      </g>
-
-      {/* Table 6 */}
-      <g className="table" data-table="6">
-        <circle cx="305" cy="345" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="305" cy="345" r="15" fill="#fff" opacity="0.6" />
-        <line x1="305" y1="330" x2="305" y2="360" stroke="#999" strokeWidth="1" />
-        <line x1="290" y1="345" x2="320" y2="345" stroke="#999" strokeWidth="1" />
-        <text x="305" y="349" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">6</text>
-      </g>
-
-      {/* Table 7 */}
-      <g className="table" data-table="7">
-        <circle cx="305" cy="410" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="305" cy="410" r="15" fill="#fff" opacity="0.6" />
-        <line x1="305" y1="395" x2="305" y2="425" stroke="#999" strokeWidth="1" />
-        <line x1="290" y1="410" x2="320" y2="410" stroke="#999" strokeWidth="1" />
-        <text x="305" y="414" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">7</text>
-      </g>
-
-      {/* Table 8 */}
-      <g className="table" data-table="8">
-        <circle cx="305" cy="465" r="18" fill="#E8E8E8" stroke="#ccc" strokeWidth="1" />
-        <circle cx="305" cy="465" r="15" fill="#fff" opacity="0.6" />
-        <line x1="305" y1="450" x2="305" y2="480" stroke="#999" strokeWidth="1" />
-        <line x1="290" y1="465" x2="320" y2="465" stroke="#999" strokeWidth="1" />
-        <text x="305" y="469" textAnchor="middle" fontSize="10" fontWeight="600" fill="#555">8</text>
-      </g>
+      {/* Table Squares */}
+      {tables.map((table) => {
+        const isSelected = selectedTableId === table.id;
+        return (
+          <g
+            key={table.id}
+            onClick={(e) => {
+              e.stopPropagation();
+              onTableClick(table);
+            }}
+            style={{ cursor: "pointer" }}
+          >
+            <rect
+              x={table.x}
+              y={table.y}
+              width={tableSize}
+              height={tableSize}
+              rx="3"
+              ry="3"
+              fill={isSelected ? "url(#selectedGradient)" : "#fff"}
+              stroke={isSelected ? "#B71C1C" : "#8BC34A"}
+              strokeWidth={isSelected ? 2 : 1}
+              className="transition-all duration-200"
+            />
+            <text
+              x={table.x + tableSize / 2}
+              y={table.y + tableSize / 2 + 4}
+              textAnchor="middle"
+              fontSize="9"
+              fontWeight="600"
+              fill={isSelected ? "#fff" : "#555"}
+              style={{ pointerEvents: "none" }}
+            >
+              {table.id}
+            </text>
+          </g>
+        );
+      })}
 
       {/* Pool Labels */}
       <text x="200" y="95" textAnchor="middle" fontSize="12" fontWeight="600" fill="#fff" opacity="0.8">
