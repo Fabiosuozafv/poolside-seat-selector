@@ -1,7 +1,7 @@
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { ZoomIn, ZoomOut, RotateCcw, Move } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import PoolMapSVG from "@/components/PoolMapSVG";
+import PoolMapImage from "@/components/PoolMapImage";
 import SelectionPin from "@/components/SelectionPin";
 import StatusCard from "@/components/StatusCard";
 import SuccessScreen from "@/components/SuccessScreen";
@@ -13,7 +13,7 @@ const Index = () => {
     selection,
     savedLocation,
     isConfirmed,
-    handleSvgClick,
+    handleMapClick,
     confirmSelection,
     clearSelection,
     resetAll,
@@ -93,11 +93,11 @@ const Index = () => {
                 contentClass="!w-full !h-full flex items-center justify-center p-4"
               >
                 <div 
-                  className="relative w-full max-w-2xl" 
+                  className="relative w-full max-w-lg" 
                   ref={containerRef} 
-                  onClick={handleSvgClick}
+                  onClick={handleMapClick}
                 >
-                  <PoolMapSVG />
+                  <PoolMapImage />
                   
                   {/* Selection Pin */}
                   {selection && pinPosition && (
