@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 interface Table {
   id: number;
   x: number;
@@ -14,61 +12,95 @@ interface PoolMapSVGProps {
   onTableClick: (table: Table) => void;
 }
 
-// Generate tables that fit in the areas
+// Generate the 15 umbrella tables positioned exactly as in the reference image
 export function generateTables(): Table[] {
-  const tables: Table[] = [];
-  let id = 1;
-  
-  const tableSize = 22; // Size of each table square
-  const gap = 6; // Gap between tables
-  const step = tableSize + gap;
-  
-  // Deck area tables (1-15) - around the pools in the beige area
-  // Top row above top pool
-  const deckTables = [
-    { x: 75, y: 10 },
-    { x: 103, y: 10 },
-    { x: 285, y: 10 },
-    { x: 313, y: 10 },
-    // Left side of pools
-    { x: 75, y: 55 },
-    { x: 75, y: 100 },
-    { x: 75, y: 195 },
-    { x: 75, y: 250 },
-    { x: 75, y: 310 },
-    { x: 75, y: 365 },
-    // Right side of pools
-    { x: 303, y: 55 },
-    { x: 303, y: 100 },
-    { x: 303, y: 195 },
-    { x: 303, y: 250 },
-    { x: 303, y: 310 },
+  // Positions matching the reference image exactly
+  // Right side (1-8): going down from top
+  // Left side (9-15): going down from top
+  const tables: Table[] = [
+    // Right side - 1 to 8 (top to bottom)
+    { id: 1, x: 290, y: 45, sector: "B" },
+    { id: 2, x: 290, y: 90, sector: "B" },
+    { id: 3, x: 290, y: 135, sector: "B" },
+    { id: 4, x: 290, y: 185, sector: "B" },
+    { id: 5, x: 290, y: 250, sector: "B" },
+    { id: 6, x: 290, y: 305, sector: "B" },
+    { id: 7, x: 290, y: 370, sector: "B" },
+    { id: 8, x: 290, y: 420, sector: "B" },
+    // Left side - 9 to 15 (top to bottom)
+    { id: 9, x: 85, y: 45, sector: "A" },
+    { id: 10, x: 85, y: 105, sector: "A" },
+    { id: 11, x: 85, y: 165, sector: "A" },
+    { id: 12, x: 85, y: 235, sector: "A" },
+    { id: 13, x: 85, y: 305, sector: "A" },
+    { id: 14, x: 85, y: 375, sector: "A" },
+    { id: 15, x: 85, y: 440, sector: "A" },
   ];
-  
-  for (const pos of deckTables.slice(0, 15)) {
-    tables.push({ id: id++, x: pos.x, y: pos.y, sector: "DECK" as any });
-  }
-  
-  // Left side (Sector A) - from x=10 to x=58, y=40 to y=460
-  for (let y = 45; y <= 450; y += step) {
-    for (let x = 12; x <= 48; x += step) {
-      tables.push({ id: id++, x, y, sector: "A" });
-    }
-  }
-  
-  // Right side (Sector B) - from x=340 to x=388, y=40 to y=460
-  for (let y = 45; y <= 450; y += step) {
-    for (let x = 342; x <= 378; x += step) {
-      tables.push({ id: id++, x, y, sector: "B" });
-    }
-  }
   
   return tables;
 }
 
-const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMapSVGProps) => {
-  const tableSize = 22;
+// Umbrella component for visual representation
+const Umbrella = ({ x, y, id, isSelected, onClick }: { 
+  x: number; 
+  y: number; 
+  id: number; 
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  const size = 28;
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const radius = size / 2 - 2;
   
+  return (
+    <g onClick={onClick} style={{ cursor: "pointer" }}>
+      {/* Umbrella circle */}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={radius}
+        fill={isSelected ? "#E53935" : "#D4A574"}
+        stroke={isSelected ? "#B71C1C" : "#8B7355"}
+        strokeWidth={isSelected ? 2 : 1}
+      />
+      {/* Umbrella segments (8 lines from center) */}
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
+        const rad = (angle * Math.PI) / 180;
+        const x2 = cx + Math.cos(rad) * radius;
+        const y2 = cy + Math.sin(rad) * radius;
+        return (
+          <line
+            key={angle}
+            x1={cx}
+            y1={cy}
+            x2={x2}
+            y2={y2}
+            stroke={isSelected ? "#fff" : "#8B7355"}
+            strokeWidth={0.8}
+            opacity={0.6}
+          />
+        );
+      })}
+      {/* Center dot */}
+      <circle cx={cx} cy={cy} r={2} fill={isSelected ? "#fff" : "#8B7355"} />
+      {/* Number label */}
+      <text
+        x={cx}
+        y={cy + 4}
+        textAnchor="middle"
+        fontSize="10"
+        fontWeight="700"
+        fill={isSelected ? "#fff" : "#5D4037"}
+        style={{ pointerEvents: "none" }}
+      >
+        {id}
+      </text>
+    </g>
+  );
+};
+
+const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMapSVGProps) => {
   return (
     <svg
       viewBox="0 0 400 500"
@@ -89,11 +121,6 @@ const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMa
         <linearGradient id="grassGradient" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#9CCC65" />
           <stop offset="100%" stopColor="#7CB342" />
-        </linearGradient>
-
-        <linearGradient id="selectedGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#EF5350" />
-          <stop offset="100%" stopColor="#E53935" />
         </linearGradient>
       </defs>
 
@@ -147,7 +174,7 @@ const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMa
         x="120"
         y="180"
         width="160"
-        height="200"
+        height="260"
         rx="8"
         ry="8"
         fill="url(#poolGradient)"
@@ -157,7 +184,7 @@ const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMa
         x="125"
         y="185"
         width="150"
-        height="190"
+        height="250"
         rx="6"
         ry="6"
         fill="none"
@@ -169,50 +196,23 @@ const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMa
       {/* Entrance/Structure at top */}
       <rect x="185" y="5" width="30" height="25" fill="#fff" stroke="#ddd" strokeWidth="1" rx="2" />
 
-      {/* Table Squares */}
-      {tables.map((table) => {
-        const isSelected = selectedTableId === table.id;
-        return (
-          <g
-            key={table.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              onTableClick(table);
-            }}
-            style={{ cursor: "pointer" }}
-          >
-            <rect
-              x={table.x}
-              y={table.y}
-              width={tableSize}
-              height={tableSize}
-              rx="3"
-              ry="3"
-              fill={isSelected ? "url(#selectedGradient)" : "#fff"}
-              stroke={isSelected ? "#B71C1C" : "#8BC34A"}
-              strokeWidth={isSelected ? 2 : 1}
-              className="transition-all duration-200"
-            />
-            <text
-              x={table.x + tableSize / 2}
-              y={table.y + tableSize / 2 + 4}
-              textAnchor="middle"
-              fontSize="9"
-              fontWeight="600"
-              fill={isSelected ? "#fff" : "#555"}
-              style={{ pointerEvents: "none" }}
-            >
-              {table.id}
-            </text>
-          </g>
-        );
-      })}
+      {/* Umbrella Tables */}
+      {tables.map((table) => (
+        <Umbrella
+          key={table.id}
+          x={table.x}
+          y={table.y}
+          id={table.id}
+          isSelected={selectedTableId === table.id}
+          onClick={() => onTableClick(table)}
+        />
+      ))}
 
       {/* Pool Labels */}
       <text x="200" y="95" textAnchor="middle" fontSize="12" fontWeight="600" fill="#fff" opacity="0.8">
         PISCINA
       </text>
-      <text x="200" y="285" textAnchor="middle" fontSize="12" fontWeight="600" fill="#fff" opacity="0.8">
+      <text x="200" y="315" textAnchor="middle" fontSize="12" fontWeight="600" fill="#fff" opacity="0.8">
         PISCINA
       </text>
 
