@@ -11,61 +11,55 @@ interface SavedLocation extends SelectionData {
   timestamp: number;
 }
 
+// Define green areas as polygons (coordinates relative to viewBox 0 0 489 537)
+const greenAreas = [
+  {
+    sector: "A",
+    // Left green area
+    polygon: [
+      { x: 0, y: 40 },
+      { x: 85, y: 0 },
+      { x: 85, y: 100 },
+      { x: 100, y: 100 },
+      { x: 100, y: 480 },
+      { x: 85, y: 480 },
+      { x: 85, y: 537 },
+      { x: 0, y: 500 },
+    ],
+  },
+  {
+    sector: "B", 
+    // Right green area
+    polygon: [
+      { x: 400, y: 30 },
+      { x: 489, y: 70 },
+      { x: 489, y: 470 },
+      { x: 400, y: 510 },
+      { x: 400, y: 480 },
+      { x: 385, y: 480 },
+      { x: 385, y: 100 },
+      { x: 400, y: 100 },
+    ],
+  },
+];
+
 // Point in polygon algorithm (Ray casting)
-function isPointInPolygon(x: number, y: number, polygon: SVGPolygonElement): boolean {
-  const points = polygon.points;
-  const n = points.numberOfItems;
-  if (n === 0) return false;
-  
+function isPointInPolygon(x: number, y: number, polygon: { x: number; y: number }[]): boolean {
   let inside = false;
+  const n = polygon.length;
 
-  let p1x = points.getItem(0).x;
-  let p1y = points.getItem(0).y;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const xi = polygon[i].x;
+    const yi = polygon[i].y;
+    const xj = polygon[j].x;
+    const yj = polygon[j].y;
 
-  for (let i = 1; i <= n; i++) {
-    const p2x = points.getItem(i % n).x;
-    const p2y = points.getItem(i % n).y;
-
-    if (y > Math.min(p1y, p2y)) {
-      if (y <= Math.max(p1y, p2y)) {
-        if (x <= Math.max(p1x, p2x)) {
-          const xIntersect = ((y - p1y) * (p2x - p1x)) / (p2y - p1y) + p1x;
-          if (p1x === p2x || x <= xIntersect) {
-            inside = !inside;
-          }
-        }
-      }
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+      inside = !inside;
     }
-
-    p1x = p2x;
-    p1y = p2y;
   }
 
   return inside;
-}
-
-// Check if point is inside a rect element
-function isPointInRect(x: number, y: number, rect: SVGRectElement): boolean {
-  const rx = parseFloat(rect.getAttribute("x") || "0");
-  const ry = parseFloat(rect.getAttribute("y") || "0");
-  const width = parseFloat(rect.getAttribute("width") || "0");
-  const height = parseFloat(rect.getAttribute("height") || "0");
-  
-  return x >= rx && x <= rx + width && y >= ry && y <= ry + height;
-}
-
-// Check if point is inside a path element (simplified bounding box check)
-function isPointInPath(x: number, y: number, path: SVGPathElement, svg: SVGSVGElement): boolean {
-  try {
-    const point = svg.createSVGPoint();
-    point.x = x;
-    point.y = y;
-    return path.isPointInFill(point);
-  } catch {
-    // Fallback to bounding box
-    const bbox = path.getBBox();
-    return x >= bbox.x && x <= bbox.x + bbox.width && y >= bbox.y && y <= bbox.y + bbox.height;
-  }
 }
 
 export function usePoolMapSelection() {
@@ -74,56 +68,43 @@ export function usePoolMapSelection() {
   const [isConfirmed, setIsConfirmed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleSvgClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMapClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const container = containerRef.current;
     if (!container) return;
 
-    const svg = container.querySelector("svg");
-    if (!svg) return;
+    const img = container.querySelector("img");
+    if (!img) return;
 
-    // Get click position relative to SVG
-    const rect = svg.getBoundingClientRect();
-    const viewBox = svg.viewBox.baseVal;
+    // Get click position relative to image
+    const rect = img.getBoundingClientRect();
     
-    // Calculate SVG coordinates
-    const scaleX = viewBox.width / rect.width;
-    const scaleY = viewBox.height / rect.height;
+    // Image natural dimensions mapped to viewBox
+    const viewBoxWidth = 489;
+    const viewBoxHeight = 537;
     
-    const svgX = (e.clientX - rect.left) * scaleX;
-    const svgY = (e.clientY - rect.top) * scaleY;
+    // Calculate coordinates in viewBox space
+    const scaleX = viewBoxWidth / rect.width;
+    const scaleY = viewBoxHeight / rect.height;
+    
+    const mapX = (e.clientX - rect.left) * scaleX;
+    const mapY = (e.clientY - rect.top) * scaleY;
 
-    // Find all green zones (st8 class elements)
-    const greenZones = svg.querySelectorAll(".st8");
-    let clickedInGreenZone = false;
-    let sectorIndex = 0;
+    // Check if click is in any green area
+    let clickedSector: string | null = null;
 
-    for (const zone of greenZones) {
-      sectorIndex++;
-      
-      if (zone instanceof SVGPolygonElement) {
-        if (isPointInPolygon(svgX, svgY, zone)) {
-          clickedInGreenZone = true;
-          break;
-        }
-      } else if (zone instanceof SVGRectElement) {
-        if (isPointInRect(svgX, svgY, zone)) {
-          clickedInGreenZone = true;
-          break;
-        }
-      } else if (zone instanceof SVGPathElement) {
-        if (isPointInPath(svgX, svgY, zone, svg)) {
-          clickedInGreenZone = true;
-          break;
-        }
+    for (const area of greenAreas) {
+      if (isPointInPolygon(mapX, mapY, area.polygon)) {
+        clickedSector = area.sector;
+        break;
       }
     }
 
-    if (clickedInGreenZone) {
+    if (clickedSector) {
       // Valid selection
       setSelection({
-        x: svgX,
-        y: svgY,
-        sector: `Setor ${String.fromCharCode(64 + sectorIndex)}`, // A, B, C, etc.
+        x: mapX,
+        y: mapY,
+        sector: `Setor ${clickedSector}`,
       });
     } else {
       // Invalid selection
@@ -162,18 +143,21 @@ export function usePoolMapSelection() {
   const getPinScreenPosition = useCallback(() => {
     if (!selection || !containerRef.current) return null;
 
-    const svg = containerRef.current.querySelector("svg");
-    if (!svg) return null;
+    const img = containerRef.current.querySelector("img");
+    if (!img) return null;
 
-    const rect = svg.getBoundingClientRect();
-    const viewBox = svg.viewBox.baseVal;
+    const rect = img.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
+    
+    const viewBoxWidth = 489;
+    const viewBoxHeight = 537;
 
-    const scaleX = rect.width / viewBox.width;
-    const scaleY = rect.height / viewBox.height;
+    const scaleX = rect.width / viewBoxWidth;
+    const scaleY = rect.height / viewBoxHeight;
 
     return {
-      x: selection.x * scaleX,
-      y: selection.y * scaleY,
+      x: (rect.left - containerRect.left) + selection.x * scaleX,
+      y: (rect.top - containerRect.top) + selection.y * scaleY,
     };
   }, [selection]);
 
@@ -182,7 +166,7 @@ export function usePoolMapSelection() {
     selection,
     savedLocation,
     isConfirmed,
-    handleSvgClick,
+    handleMapClick,
     confirmSelection,
     clearSelection,
     resetAll,
