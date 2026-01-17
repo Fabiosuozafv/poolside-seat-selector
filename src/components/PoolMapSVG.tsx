@@ -14,7 +14,7 @@ interface PoolMapSVGProps {
   onTableClick: (table: Table) => void;
 }
 
-// Generate tables that fit in the green areas
+// Generate tables that fit in the areas
 export function generateTables(): Table[] {
   const tables: Table[] = [];
   let id = 1;
@@ -22,6 +22,32 @@ export function generateTables(): Table[] {
   const tableSize = 22; // Size of each table square
   const gap = 6; // Gap between tables
   const step = tableSize + gap;
+  
+  // Deck area tables (1-15) - around the pools in the beige area
+  // Top row above top pool
+  const deckTables = [
+    { x: 75, y: 10 },
+    { x: 103, y: 10 },
+    { x: 285, y: 10 },
+    { x: 313, y: 10 },
+    // Left side of pools
+    { x: 75, y: 55 },
+    { x: 75, y: 100 },
+    { x: 75, y: 195 },
+    { x: 75, y: 250 },
+    { x: 75, y: 310 },
+    { x: 75, y: 365 },
+    // Right side of pools
+    { x: 303, y: 55 },
+    { x: 303, y: 100 },
+    { x: 303, y: 195 },
+    { x: 303, y: 250 },
+    { x: 303, y: 310 },
+  ];
+  
+  for (const pos of deckTables.slice(0, 15)) {
+    tables.push({ id: id++, x: pos.x, y: pos.y, sector: "DECK" as any });
+  }
   
   // Left side (Sector A) - from x=10 to x=58, y=40 to y=460
   for (let y = 45; y <= 450; y += step) {
