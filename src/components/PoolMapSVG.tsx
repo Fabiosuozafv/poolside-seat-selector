@@ -3,6 +3,7 @@ interface Table {
   x: number;
   y: number;
   sector: "A" | "B";
+  type: "umbrella" | "table";
 }
 
 interface PoolMapSVGProps {
@@ -12,35 +13,59 @@ interface PoolMapSVGProps {
   onTableClick: (table: Table) => void;
 }
 
-// Generate the 15 umbrella tables positioned exactly as in the reference image
+// Generate umbrellas (1-15) in deck + tables in green areas
 export function generateTables(): Table[] {
-  // Positions matching the reference image exactly
-  // Right side (1-8): going down from top
-  // Left side (9-15): going down from top
-  const tables: Table[] = [
+  const tables: Table[] = [];
+  
+  // Deck umbrellas (1-15) - fixed positions matching reference image
+  const umbrellas = [
     // Right side - 1 to 8 (top to bottom)
-    { id: 1, x: 290, y: 45, sector: "B" },
-    { id: 2, x: 290, y: 90, sector: "B" },
-    { id: 3, x: 290, y: 135, sector: "B" },
-    { id: 4, x: 290, y: 185, sector: "B" },
-    { id: 5, x: 290, y: 250, sector: "B" },
-    { id: 6, x: 290, y: 305, sector: "B" },
-    { id: 7, x: 290, y: 370, sector: "B" },
-    { id: 8, x: 290, y: 420, sector: "B" },
+    { id: 1, x: 290, y: 45, sector: "B" as const },
+    { id: 2, x: 290, y: 90, sector: "B" as const },
+    { id: 3, x: 290, y: 135, sector: "B" as const },
+    { id: 4, x: 290, y: 185, sector: "B" as const },
+    { id: 5, x: 290, y: 250, sector: "B" as const },
+    { id: 6, x: 290, y: 305, sector: "B" as const },
+    { id: 7, x: 290, y: 370, sector: "B" as const },
+    { id: 8, x: 290, y: 420, sector: "B" as const },
     // Left side - 9 to 15 (top to bottom)
-    { id: 9, x: 85, y: 45, sector: "A" },
-    { id: 10, x: 85, y: 105, sector: "A" },
-    { id: 11, x: 85, y: 165, sector: "A" },
-    { id: 12, x: 85, y: 235, sector: "A" },
-    { id: 13, x: 85, y: 305, sector: "A" },
-    { id: 14, x: 85, y: 375, sector: "A" },
-    { id: 15, x: 85, y: 440, sector: "A" },
+    { id: 9, x: 85, y: 45, sector: "A" as const },
+    { id: 10, x: 85, y: 105, sector: "A" as const },
+    { id: 11, x: 85, y: 165, sector: "A" as const },
+    { id: 12, x: 85, y: 235, sector: "A" as const },
+    { id: 13, x: 85, y: 305, sector: "A" as const },
+    { id: 14, x: 85, y: 375, sector: "A" as const },
+    { id: 15, x: 85, y: 440, sector: "A" as const },
   ];
+  
+  umbrellas.forEach(u => {
+    tables.push({ ...u, type: "umbrella" });
+  });
+  
+  // Green area tables - small squares
+  const tableSize = 18;
+  const gap = 4;
+  const step = tableSize + gap;
+  let id = 16;
+  
+  // Left green area (Sector A) - x: 5 to 65, y: 35 to 465
+  for (let y = 40; y <= 450; y += step) {
+    for (let x = 8; x <= 50; x += step) {
+      tables.push({ id: id++, x, y, sector: "A", type: "table" });
+    }
+  }
+  
+  // Right green area (Sector B) - x: 335 to 395, y: 35 to 465
+  for (let y = 40; y <= 450; y += step) {
+    for (let x = 338; x <= 380; x += step) {
+      tables.push({ id: id++, x, y, sector: "B", type: "table" });
+    }
+  }
   
   return tables;
 }
 
-// Umbrella component for visual representation
+// Umbrella component
 const Umbrella = ({ x, y, id, isSelected, onClick }: { 
   x: number; 
   y: number; 
@@ -55,7 +80,6 @@ const Umbrella = ({ x, y, id, isSelected, onClick }: {
   
   return (
     <g onClick={onClick} style={{ cursor: "pointer" }}>
-      {/* Umbrella circle */}
       <circle
         cx={cx}
         cy={cy}
@@ -64,7 +88,6 @@ const Umbrella = ({ x, y, id, isSelected, onClick }: {
         stroke={isSelected ? "#B71C1C" : "#8B7355"}
         strokeWidth={isSelected ? 2 : 1}
       />
-      {/* Umbrella segments (8 lines from center) */}
       {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
         const rad = (angle * Math.PI) / 180;
         const x2 = cx + Math.cos(rad) * radius;
@@ -82,9 +105,7 @@ const Umbrella = ({ x, y, id, isSelected, onClick }: {
           />
         );
       })}
-      {/* Center dot */}
       <circle cx={cx} cy={cy} r={2} fill={isSelected ? "#fff" : "#8B7355"} />
-      {/* Number label */}
       <text
         x={cx}
         y={cy + 4}
@@ -92,6 +113,44 @@ const Umbrella = ({ x, y, id, isSelected, onClick }: {
         fontSize="10"
         fontWeight="700"
         fill={isSelected ? "#fff" : "#5D4037"}
+        style={{ pointerEvents: "none" }}
+      >
+        {id}
+      </text>
+    </g>
+  );
+};
+
+// Table square component
+const TableSquare = ({ x, y, id, isSelected, onClick }: { 
+  x: number; 
+  y: number; 
+  id: number; 
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  const size = 18;
+  
+  return (
+    <g onClick={onClick} style={{ cursor: "pointer" }}>
+      <rect
+        x={x}
+        y={y}
+        width={size}
+        height={size}
+        rx="2"
+        ry="2"
+        fill={isSelected ? "#E53935" : "#fff"}
+        stroke={isSelected ? "#B71C1C" : "#558B2F"}
+        strokeWidth={isSelected ? 2 : 1}
+      />
+      <text
+        x={x + size / 2}
+        y={y + size / 2 + 4}
+        textAnchor="middle"
+        fontSize="8"
+        fontWeight="600"
+        fill={isSelected ? "#fff" : "#33691E"}
         style={{ pointerEvents: "none" }}
       >
         {id}
@@ -196,16 +255,27 @@ const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMa
       {/* Entrance/Structure at top */}
       <rect x="185" y="5" width="30" height="25" fill="#fff" stroke="#ddd" strokeWidth="1" rx="2" />
 
-      {/* Umbrella Tables */}
+      {/* Render tables and umbrellas */}
       {tables.map((table) => (
-        <Umbrella
-          key={table.id}
-          x={table.x}
-          y={table.y}
-          id={table.id}
-          isSelected={selectedTableId === table.id}
-          onClick={() => onTableClick(table)}
-        />
+        table.type === "umbrella" ? (
+          <Umbrella
+            key={table.id}
+            x={table.x}
+            y={table.y}
+            id={table.id}
+            isSelected={selectedTableId === table.id}
+            onClick={() => onTableClick(table)}
+          />
+        ) : (
+          <TableSquare
+            key={table.id}
+            x={table.x}
+            y={table.y}
+            id={table.id}
+            isSelected={selectedTableId === table.id}
+            onClick={() => onTableClick(table)}
+          />
+        )
       ))}
 
       {/* Pool Labels */}
