@@ -15,6 +15,8 @@ interface SavedLocation extends SelectionData {
 function isPointInPolygon(x: number, y: number, polygon: SVGPolygonElement): boolean {
   const points = polygon.points;
   const n = points.numberOfItems;
+  if (n === 0) return false;
+  
   let inside = false;
 
   let p1x = points.getItem(0).x;
@@ -42,14 +44,41 @@ function isPointInPolygon(x: number, y: number, polygon: SVGPolygonElement): boo
   return inside;
 }
 
+// Check if point is inside a rect element
+function isPointInRect(x: number, y: number, rect: SVGRectElement): boolean {
+  const rx = parseFloat(rect.getAttribute("x") || "0");
+  const ry = parseFloat(rect.getAttribute("y") || "0");
+  const width = parseFloat(rect.getAttribute("width") || "0");
+  const height = parseFloat(rect.getAttribute("height") || "0");
+  
+  return x >= rx && x <= rx + width && y >= ry && y <= ry + height;
+}
+
+// Check if point is inside a path element (simplified bounding box check)
+function isPointInPath(x: number, y: number, path: SVGPathElement, svg: SVGSVGElement): boolean {
+  try {
+    const point = svg.createSVGPoint();
+    point.x = x;
+    point.y = y;
+    return path.isPointInFill(point);
+  } catch {
+    // Fallback to bounding box
+    const bbox = path.getBBox();
+    return x >= bbox.x && x <= bbox.x + bbox.width && y >= bbox.y && y <= bbox.y + bbox.height;
+  }
+}
+
 export function usePoolMapSelection() {
   const [selection, setSelection] = useState<SelectionData | null>(null);
   const [savedLocation, setSavedLocation] = useState<SavedLocation | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleSvgClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
-    const svg = svgRef.current;
+  const handleSvgClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const svg = container.querySelector("svg");
     if (!svg) return;
 
     // Get click position relative to SVG
@@ -63,25 +92,38 @@ export function usePoolMapSelection() {
     const svgX = (e.clientX - rect.left) * scaleX;
     const svgY = (e.clientY - rect.top) * scaleY;
 
-    // Find all green zones (st8 class polygons)
+    // Find all green zones (st8 class elements)
     const greenZones = svg.querySelectorAll(".st8");
-    let clickedSector: string | null = null;
+    let clickedInGreenZone = false;
+    let sectorIndex = 0;
 
     for (const zone of greenZones) {
+      sectorIndex++;
+      
       if (zone instanceof SVGPolygonElement) {
         if (isPointInPolygon(svgX, svgY, zone)) {
-          clickedSector = zone.getAttribute("data-sector");
+          clickedInGreenZone = true;
+          break;
+        }
+      } else if (zone instanceof SVGRectElement) {
+        if (isPointInRect(svgX, svgY, zone)) {
+          clickedInGreenZone = true;
+          break;
+        }
+      } else if (zone instanceof SVGPathElement) {
+        if (isPointInPath(svgX, svgY, zone, svg)) {
+          clickedInGreenZone = true;
           break;
         }
       }
     }
 
-    if (clickedSector) {
+    if (clickedInGreenZone) {
       // Valid selection
       setSelection({
         x: svgX,
         y: svgY,
-        sector: `Setor ${clickedSector}`,
+        sector: `Setor ${String.fromCharCode(64 + sectorIndex)}`, // A, B, C, etc.
       });
     } else {
       // Invalid selection
@@ -118,9 +160,11 @@ export function usePoolMapSelection() {
 
   // Calculate pin position for display (needs to be in screen coordinates)
   const getPinScreenPosition = useCallback(() => {
-    if (!selection || !svgRef.current) return null;
+    if (!selection || !containerRef.current) return null;
 
-    const svg = svgRef.current;
+    const svg = containerRef.current.querySelector("svg");
+    if (!svg) return null;
+
     const rect = svg.getBoundingClientRect();
     const viewBox = svg.viewBox.baseVal;
 
@@ -134,7 +178,7 @@ export function usePoolMapSelection() {
   }, [selection]);
 
   return {
-    svgRef,
+    containerRef,
     selection,
     savedLocation,
     isConfirmed,
