@@ -65,13 +65,11 @@ export function generateTables(): Table[] {
   return tables;
 }
 
-// Umbrella component
-const Umbrella = ({ x, y, id, isSelected, onClick }: { 
+// Umbrella component (non-clickable, just for display)
+const Umbrella = ({ x, y, id }: { 
   x: number; 
   y: number; 
   id: number; 
-  isSelected: boolean;
-  onClick: () => void;
 }) => {
   const size = 28;
   const cx = x + size / 2;
@@ -79,14 +77,14 @@ const Umbrella = ({ x, y, id, isSelected, onClick }: {
   const radius = size / 2 - 2;
   
   return (
-    <g onClick={onClick} style={{ cursor: "pointer" }}>
+    <g style={{ pointerEvents: "none" }}>
       <circle
         cx={cx}
         cy={cy}
         r={radius}
-        fill={isSelected ? "#E53935" : "#D4A574"}
-        stroke={isSelected ? "#B71C1C" : "#8B7355"}
-        strokeWidth={isSelected ? 2 : 1}
+        fill="#D4A574"
+        stroke="#8B7355"
+        strokeWidth={1}
       />
       {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => {
         const rad = (angle * Math.PI) / 180;
@@ -99,21 +97,20 @@ const Umbrella = ({ x, y, id, isSelected, onClick }: {
             y1={cy}
             x2={x2}
             y2={y2}
-            stroke={isSelected ? "#fff" : "#8B7355"}
+            stroke="#8B7355"
             strokeWidth={0.8}
             opacity={0.6}
           />
         );
       })}
-      <circle cx={cx} cy={cy} r={2} fill={isSelected ? "#fff" : "#8B7355"} />
+      <circle cx={cx} cy={cy} r={2} fill="#8B7355" />
       <text
         x={cx}
         y={cy + 4}
         textAnchor="middle"
         fontSize="10"
         fontWeight="700"
-        fill={isSelected ? "#fff" : "#5D4037"}
-        style={{ pointerEvents: "none" }}
+        fill="#5D4037"
       >
         {id}
       </text>
@@ -263,8 +260,6 @@ const PoolMapSVG = ({ className, tables, selectedTableId, onTableClick }: PoolMa
             x={table.x}
             y={table.y}
             id={table.id}
-            isSelected={selectedTableId === table.id}
-            onClick={() => onTableClick(table)}
           />
         ) : (
           <TableSquare
