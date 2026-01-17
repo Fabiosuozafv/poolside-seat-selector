@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
+        display: ["Space Grotesk", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -46,6 +50,11 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        pool: {
+          blue: "hsl(var(--pool-blue))",
+          green: "hsl(var(--pool-green))",
+          sand: "hsl(var(--pool-sand))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
