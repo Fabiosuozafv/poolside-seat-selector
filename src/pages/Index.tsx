@@ -9,7 +9,7 @@ import { usePoolMapSelection } from "@/hooks/usePoolMapSelection";
 
 const Index = () => {
   const {
-    svgRef,
+    containerRef,
     selection,
     savedLocation,
     isConfirmed,
@@ -30,7 +30,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="px-4 py-4 sm:py-6 border-b border-border bg-card">
+      <header className="px-4 py-4 sm:py-6 border-b border-border bg-card shrink-0">
         <div className="max-w-2xl mx-auto">
           <h1 className="font-display text-xl sm:text-2xl font-bold text-foreground text-center">
             Selecione sua mesa na piscina
@@ -42,7 +42,7 @@ const Index = () => {
       </header>
 
       {/* Map Container */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden min-h-0">
         <TransformWrapper
           initialScale={1}
           minScale={0.5}
@@ -92,8 +92,12 @@ const Index = () => {
                 wrapperClass="!w-full !h-full"
                 contentClass="!w-full !h-full flex items-center justify-center p-4"
               >
-                <div className="relative w-full max-w-xl">
-                  <PoolMapSVG ref={svgRef} onClick={handleSvgClick} />
+                <div 
+                  className="relative w-full max-w-2xl" 
+                  ref={containerRef} 
+                  onClick={handleSvgClick}
+                >
+                  <PoolMapSVG />
                   
                   {/* Selection Pin */}
                   {selection && pinPosition && (
@@ -107,11 +111,13 @@ const Index = () => {
       </div>
 
       {/* Status Card */}
-      <StatusCard
-        selection={selection}
-        onConfirm={confirmSelection}
-        onClear={clearSelection}
-      />
+      <div className="shrink-0">
+        <StatusCard
+          selection={selection}
+          onConfirm={confirmSelection}
+          onClear={clearSelection}
+        />
+      </div>
     </div>
   );
 };
